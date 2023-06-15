@@ -60,17 +60,20 @@ const TimeController = class {
 
         }
 
+
         const length = checkAction.values.length - 1
 
         const CheckOut = await CheckTable(checkAction.name, mes, length) // CHECANDO SE O ULTIMO ARRAY TEM SAÍDA.
 
         const clone = await CloneTable(checkAction.name, mes, length) // CLONANDO TODO O ARRAY DO DIA DO USER.
 
-        if (typeof (clone) != "undefined") {
-            clone[length]["output"] = horario
-        }
 
         if (CheckOut) {
+
+            if (typeof (clone) != "undefined") {
+                clone[length]["output"] = horario
+            }
+
             await Time.updateOne({ name: CheckPassword.name, data: mes }, { values: clone }) // UPANDO TODO O ARRAY COM O OUTPUT DO ULTIMO ATUALIZADO.
             res.status(200).json({
                 msg: `${CheckPassword.name} : ${horario}`,
@@ -80,15 +83,21 @@ const TimeController = class {
             return
         }
 
+        // CASO JÁ TENHA BATIDO O PRIMEIRO PONTO DE ENTRADA E SAÍDA DO DIA.
 
+        if (typeof (clone) != "undefined") {
+            clone.push({ input: horario, output: "" })
+        }
+
+        await Time.updateOne({ name: CheckPassword.name, data: mes }, { values: clone })
+
+        res.status(200).json({
+            msg: `${CheckPassword.name} : ${horario}`,
+            action: `${checkAction.values.length + 1} entrada do dia.`
+        })
 
 
     }
-
-
-
-
-
 
 }
 
