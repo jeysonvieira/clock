@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const User_1 = __importDefault(require("../models/User"));
 const Time_1 = __importDefault(require("../models/Time"));
 const axios_1 = __importDefault(require("axios"));
+const CheckAction_1 = require("../helpers/CheckAction");
 const TimeController = class {
     static Enter(req, res) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -43,19 +44,38 @@ const TimeController = class {
                 dia = DiasDaSemana[dia]; // DIA DA SEMANA
             }
             const checkAction = yield Time_1.default.findOne({ name: CheckPassword.name, data: mes }).lean();
+            const values = [{ input: horario, output: '' }];
             // CRIAÇÃO DA TABELA CASO SEJA O PRIMEIRO PONTO DO DIA.
             if (!checkAction) {
-                yield new Time_1.default({ name: CheckPassword.name, input: horario, output: "", data: mes }).save();
+                yield new Time_1.default({ name: CheckPassword.name, values: values, data: mes }).save();
                 res.status(201).json({
                     msg: `${CheckPassword.name} : ${horario}`,
                     action: "entrada"
                 });
                 return;
             }
-            yield Time_1.default.updateOne({ name: CheckPassword.name, data: mes }, { output: horario });
+            const length = checkAction.values.length - 1;
+            const CheckOut = yield (0, CheckAction_1.CheckTable)(checkAction.name, mes, length); // CHECANDO SE O ULTIMO ARRAY TEM SAÍDA.
+            const clone = yield (0, CheckAction_1.CloneTable)(checkAction.name, mes, length); // CLONANDO TODO O ARRAY DO DIA DO USER.
+            if (CheckOut) {
+                if (typeof (clone) != "undefined") {
+                    clone[length]["output"] = horario;
+                }
+                yield Time_1.default.updateOne({ name: CheckPassword.name, data: mes }, { values: clone }); // UPANDO TODO O ARRAY COM O OUTPUT DO ULTIMO ATUALIZADO.
+                res.status(200).json({
+                    msg: `${CheckPassword.name} : ${horario}`,
+                    action: "saída"
+                });
+                return;
+            }
+            // CASO JÁ TENHA BATIDO O PRIMEIRO PONTO DE ENTRADA E SAÍDA DO DIA.
+            if (typeof (clone) != "undefined") {
+                clone.push({ input: horario, output: "" });
+            }
+            yield Time_1.default.updateOne({ name: CheckPassword.name, data: mes }, { values: clone });
             res.status(200).json({
                 msg: `${CheckPassword.name} : ${horario}`,
-                action: "saída"
+                action: `${checkAction.values.length + 1} entrada do dia.`
             });
         });
     }
