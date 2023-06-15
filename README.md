@@ -8,8 +8,8 @@
 
 - [x] Cadastro De Usuários Com Recebimento De Senha Aleatória de 4 dígitos.
 - [x] Adicionar No DB a Data e Hóra De Entrada e Saída.
+- [x] Adicionar Mais De Uma Entrada e Saída Em Um único Dia.
 - [ ] Cálculo De Tempo Diário e Semanal De Hóras Trabalhadas.
-- [ ] Adicionar Mais De Uma Entrada e Saída Em Um único Dia.
 - [ ] Dashboard Para o Root Visualizar Todos Os Pontos Dos Funcionários.
 
 ## 🎲 Rodando o Back End (servidor)

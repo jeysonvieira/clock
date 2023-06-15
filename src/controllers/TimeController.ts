@@ -2,6 +2,7 @@ import User from '../models/User'
 import Time from '../models/Time'
 import { Request, Response } from 'express'
 import axios from 'axios'
+import { CheckTable, CloneTable } from '../helpers/CheckAction'
 
 
 
@@ -44,10 +45,12 @@ const TimeController = class {
         }
 
         const checkAction = await Time.findOne({ name: CheckPassword.name, data: mes }).lean()
+        const values = [{ input: horario, output: '' }]
+
 
         // CRIAÇÃO DA TABELA CASO SEJA O PRIMEIRO PONTO DO DIA.
         if (!checkAction) {
-            await new Time({ name: CheckPassword.name, input: horario, output: "", data: mes }).save()
+            await new Time({ name: CheckPassword.name, values: values, data: mes }).save()
 
             res.status(201).json({
                 msg: `${CheckPassword.name} : ${horario}`,
@@ -58,18 +61,43 @@ const TimeController = class {
         }
 
 
-        await Time.updateOne({ name: CheckPassword.name, data: mes }, { output: horario })
+        const length = checkAction.values.length - 1
+
+        const CheckOut = await CheckTable(checkAction.name, mes, length) // CHECANDO SE O ULTIMO ARRAY TEM SAÍDA.
+
+        const clone = await CloneTable(checkAction.name, mes, length) // CLONANDO TODO O ARRAY DO DIA DO USER.
+
+
+        if (CheckOut) {
+
+            if (typeof (clone) != "undefined") {
+                clone[length]["output"] = horario
+            }
+
+            await Time.updateOne({ name: CheckPassword.name, data: mes }, { values: clone }) // UPANDO TODO O ARRAY COM O OUTPUT DO ULTIMO ATUALIZADO.
+            res.status(200).json({
+                msg: `${CheckPassword.name} : ${horario}`,
+                action: "saída"
+            })
+
+            return
+        }
+
+        // CASO JÁ TENHA BATIDO O PRIMEIRO PONTO DE ENTRADA E SAÍDA DO DIA.
+
+        if (typeof (clone) != "undefined") {
+            clone.push({ input: horario, output: "" })
+        }
+
+        await Time.updateOne({ name: CheckPassword.name, data: mes }, { values: clone })
 
         res.status(200).json({
             msg: `${CheckPassword.name} : ${horario}`,
-            action: "saída"
+            action: `${checkAction.values.length + 1} entrada do dia.`
         })
+
+
     }
-
-
-
-
-
 
 }
 

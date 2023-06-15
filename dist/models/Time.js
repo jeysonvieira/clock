@@ -9,15 +9,9 @@ const TimeType = {
     name: {
         type: String,
         required: true
-    },
-    input: {
-        type: String,
-        required: true
-    },
-    output: {
-        type: String,
-        required: false
-    },
+    }, values: [
+        ...[]
+    ],
     data: {
         type: String,
         required: true
