@@ -9,7 +9,7 @@ const Dashboard = class {
 
     static async DashboardAll(req : Request, res : Response){
 
-        const AllDaysAndUsers = await Time.find().lean()
+        const AllDaysAndUsers = await Time.find().lean().select("-createdAt -updatedAt -__v")
 
         
         res.status(201).json({
@@ -25,7 +25,7 @@ const Dashboard = class {
         const name = req.params.name
 
         if(req.params.date && req.params.name){
-            const NameAndDate = await Time.findOne({name : name, data : req.params.date}).lean()
+            const NameAndDate = await Time.findOne({name : name, data : req.params.date}).lean().select("-createdAt -updatedAt -__v")
 
             res.status(200).json({
                 data : NameAndDate
@@ -34,9 +34,7 @@ const Dashboard = class {
             return
         } else if(req.params.name){
 
-            const AllByName = await Time.findOne({name : name}).lean()
-
-            console.log('só nome')
+            const AllByName = await Time.findOne({name : name}).lean().select("-createdAt -updatedAt -__v")
 
             res.status(200).json({
                 date : AllByName
@@ -56,7 +54,7 @@ const Dashboard = class {
         const date = req.params.date
 
         if(req.params.date){
-            const AllByDate = await Time.findOne({data : date}).lean()
+            const AllByDate = await Time.findOne({data : date}).lean().select("-createdAt -updatedAt -__v")
 
             res.status(200).json({
                 date : AllByDate
